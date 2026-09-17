@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        Le parent spring-boot-starter-parent fournit :
+        - la gestion centralisée des versions de toutes les dépendances et
+          plugins Spring Boot (via son propre parent spring-boot-dependencies),
+        - une configuration par défaut sensée des plugins Maven (compilateur,
+          ressources, surefire, etc.),
+        - le plugin spring-boot-maven-plugin permettant de produire un jar
+          exécutable ("fat jar").
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath/> <!-- recherche le parent dans le dépôt Maven plutôt qu'en local -->
+    </parent>
+
+    <groupId>com.hashtag.ngo.example</groupId>
+    <artifactId>bank</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>bank</name>
+    <description>API de comptes bancaires - gestion des comptes et des transactions</description>
+
+    <properties>
+        <!--
+            Fixe explicitement la version du bytecode Java généré par le
+            compilateur (équivalent à l'option "release" de javac). Contrairement
+            à source/target, release garantit aussi que les API utilisées
+            existent bien dans le JDK 21 (pas seulement la syntaxe).
+        -->
+        <maven.compiler.release>21</maven.compiler.release>
+
+        <!-- Versions non gérées par le BOM Spring Boot : centralisées ici -->
+        <cucumber.version>7.20.1</cucumber.version>
+        <archunit.version>1.3.0</archunit.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <jjwt.version>0.12.6</jjwt.version>
+        <springdoc.version>3.0.0</springdoc.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ===================== Dépendances applicatives ===================== -->
+
+        <!--
+            Starter web : MVC (contrôleurs REST), serveur Tomcat embarqué,
+            (dé)sérialisation JSON via Jackson. Nécessaire dès que la couche
+            api exposera des endpoints HTTP.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--
+            Starter sécurité : authentification/autorisation et filtres de
+            sécurité Spring Security. La configuration effective (JWT,
+            règles d'accès) sera ajoutée avec les couches bean/api, mais la
+            dépendance est posée dès maintenant.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!--
+            Starter Spring Data JPA : fournit Hibernate comme implémentation
+            JPA, ainsi que l'infrastructure Spring Data (JpaRepository, etc.)
+            utilisée par AccountRepository et TransactionRepository.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!--
+            Base de données H2, embarquée en mémoire. Scope "runtime" car le
+            code source ne dépend jamais directement des classes du driver
+            JDBC H2 : seule sa présence sur le classpath d'exécution compte.
+        -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+            Génère automatiquement la documentation OpenAPI et une interface
+            Swagger UI à partir des contrôleurs Spring MVC annotés. Version
+            explicite car non gérée par le BOM Spring Boot.
+        -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <!--
+            MapStruct : génère à la compilation les implémentations des
+            interfaces de mapping DTO <-> entités (pas de réflexion à
+            l'exécution). Dépendance "normale" ; c'est le processeur
+            d'annotations (déclaré plus bas dans le plugin compilateur) qui
+            effectue la génération de code.
+        -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
+        <!--
+            JJWT - API : uniquement les interfaces/classes publiques
+            utilisées par le code applicatif pour créer/lire des JWT. Scope
+            de compilation par défaut car le code source y fait directement
+            référence.
+        -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+
+        <!--
+            JJWT - implémentation. Le code applicatif ne référence jamais
+            ces classes directement (uniquement jjwt-api) : scope "runtime".
+        -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--
+            JJWT - support Jackson pour (dé)sérialiser les claims JWT en
+            JSON. Requis uniquement à l'exécution, comme jjwt-impl.
+        -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ===================== Dépendances de test ===================== -->
+
+        <!--
+            Starter de test Spring Boot : JUnit 5, Mockito, AssertJ,
+            spring-test... tout le nécessaire pour les tests unitaires et
+            d'intégration.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            Cucumber - moteur d'exécution des scénarios Gherkin et liaison
+            avec les méthodes Java annotées (@Given/@When/@Then).
+        -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            Cucumber - intégration avec le contexte Spring (injection des
+            beans applicatifs dans les classes de steps).
+        -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-spring</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            Permet de lancer les scénarios Cucumber comme des tests JUnit 5
+            via le moteur JUnit Platform (donc détectés par Surefire/Failsafe
+            comme n'importe quel autre test).
+        -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit-platform-engine</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            ArchUnit : tests d'architecture qui vérifient au moyen de règles
+            Java (pas de configuration externe) le respect des dépendances
+            attendues entre couches (entity, bean, api...).
+        -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!--
+                Compilateur Java : configuration spécifique nécessaire pour
+                déclarer mapstruct-processor comme processeur d'annotations.
+                On le déclare ici plutôt que comme dépendance "provided" pour
+                qu'il ne soit utilisé que pendant la compilation et n'apparaisse
+                jamais sur le classpath applicatif ou dans le jar final.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!--
+                Produit le jar exécutable ("fat jar" avec toutes les
+                dépendances embarquées) et fournit les goals run/start/stop
+                utiles en développement. Version et exécution héritées du
+                parent spring-boot-starter-parent.
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
