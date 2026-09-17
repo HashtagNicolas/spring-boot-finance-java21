@@ -37,7 +37,7 @@ public final class SavingsAccount extends Account {
     public void withdraw(BigDecimal amount) {
         requirePositiveAmount(amount);
         if (getBalance().compareTo(amount) < 0) {
-            throw new IllegalStateException("Solde insuffisant : le découvert n'est pas autorisé sur un compte épargne");
+            throw new InsufficientFundsException("Solde insuffisant : le découvert n'est pas autorisé sur un compte épargne");
         }
         debit(amount);
     }

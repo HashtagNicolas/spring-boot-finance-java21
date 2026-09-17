@@ -81,7 +81,7 @@ public abstract sealed class Account permits CheckingAccount, SavingsAccount {
     /** Vérifie qu'un montant d'opération est valide (non nul et strictement positif). */
     protected static void requirePositiveAmount(BigDecimal amount) {
         if (amount == null || amount.signum() <= 0) {
-            throw new IllegalArgumentException("Le montant de l'opération doit être strictement positif");
+            throw new InvalidAmountException("Le montant de l'opération doit être strictement positif");
         }
     }
 

@@ -1,6 +1,7 @@
 package com.hashtag.ngo.example.bank.bean;
 
 import com.hashtag.ngo.example.bank.entity.Account;
+import com.hashtag.ngo.example.bank.entity.AccountNotFoundException;
 import com.hashtag.ngo.example.bank.entity.AccountRepository;
 import com.hashtag.ngo.example.bank.entity.CheckingAccount;
 import com.hashtag.ngo.example.bank.entity.SavingsAccount;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 public class AccountServiceImpl implements AccountService {
@@ -34,7 +34,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account getAccount(Long accountId) {
         return accountRepository.findById(accountId)
-                .orElseThrow(() -> new NoSuchElementException("Compte introuvable : " + accountId));
+                .orElseThrow(() -> new AccountNotFoundException("Compte introuvable : " + accountId));
     }
 
     @Override

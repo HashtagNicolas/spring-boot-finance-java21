@@ -41,7 +41,7 @@ public final class CheckingAccount extends Account {
         requirePositiveAmount(amount);
         BigDecimal balanceAfterWithdrawal = getBalance().subtract(amount);
         if (balanceAfterWithdrawal.compareTo(overdraftLimit.negate()) < 0) {
-            throw new IllegalStateException("Le retrait dépasse le découvert autorisé");
+            throw new InsufficientFundsException("Le retrait dépasse le découvert autorisé");
         }
         debit(amount);
     }
