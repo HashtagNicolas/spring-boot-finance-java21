@@ -80,4 +80,18 @@ public class AccountServiceImpl implements AccountService {
             case SavingsAccount savings -> savings.getBalance();
         };
     }
+
+    @Override
+    public Account applyInterest(Long accountId) {
+        Account account = getAccount(accountId);
+        // Seul un compte épargne porte un taux d'intérêt : pour un compte
+        // courant, l'opération est un no-op idempotent plutôt qu'une erreur.
+        return switch (account) {
+            case SavingsAccount savings -> {
+                savings.applyInterest();
+                yield accountRepository.save(savings);
+            }
+            case CheckingAccount checking -> checking;
+        };
+    }
 }

@@ -208,6 +208,20 @@
             <scope>test</scope>
         </dependency>
 
+        <!--
+            Fournit @Suite/@IncludeEngines/@SelectClasspathResource, qui
+            permettent de lancer les scénarios Cucumber (moteur "cucumber",
+            via cucumber-junit-platform-engine) au travers d'une classe JUnit
+            Platform standard, elle-même exécutée par Maven Surefire. Version
+            alignée sur le BOM JUnit importé par Spring Boot, pas besoin de
+            la préciser explicitement.
+        -->
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

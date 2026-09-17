@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -39,7 +41,7 @@ public class AccountController {
 
     @PostMapping
     @Operation(summary = "Crée un compte courant ou épargne")
-    public AccountResponse createAccount(@RequestBody AccountRequest request) {
+    public ResponseEntity<AccountResponse> createAccount(@RequestBody AccountRequest request) {
         // Pattern matching for switch sur AccountType : choisit le sous-type
         // concret à créer (CheckingAccount ou SavingsAccount).
         Account account = switch (request.type()) {
@@ -48,7 +50,10 @@ public class AccountController {
             case EPARGNE -> accountService.createSavingsAccount(
                     request.owner(), request.initialBalance(), request.interestRate());
         };
-        return accountMapper.toResponse(account);
+        AccountResponse response = accountMapper.toResponse(account);
+        // 201 Created + en-tête Location, plutôt que 200 : la requête a créé
+        // une nouvelle ressource, dont l'URL de consultation est connue.
+        return ResponseEntity.created(URI.create("/accounts/" + response.id())).body(response);
     }
 
     @GetMapping("/{id}")
@@ -79,5 +84,11 @@ public class AccountController {
     public AccountResponse withdraw(@PathVariable Long id, @RequestBody TransactionRequest request) {
         TransactionCommand command = new TransactionCommand(id, TransactionType.RETRAIT, request.amount());
         return accountMapper.toResponse(accountService.applyTransaction(command));
+    }
+
+    @PostMapping("/{id}/interest")
+    @Operation(summary = "Capitalise les intérêts d'un compte épargne (sans effet sur un compte courant)")
+    public AccountResponse applyInterest(@PathVariable Long id) {
+        return accountMapper.toResponse(accountService.applyInterest(id));
     }
 }

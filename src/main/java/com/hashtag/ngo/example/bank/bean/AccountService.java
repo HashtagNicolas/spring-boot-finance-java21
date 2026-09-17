@@ -35,4 +35,10 @@ public interface AccountService {
      * dépend du type de compte (le découvert n'existe que sur un compte courant).
      */
     BigDecimal getAvailableBalance(Long accountId);
+
+    /**
+     * Capitalise les intérêts d'un compte épargne. Sans effet sur un compte
+     * courant (qui n'a pas de taux d'intérêt).
+     */
+    Account applyInterest(Long accountId);
 }
