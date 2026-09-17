@@ -5,6 +5,10 @@ import com.hashtag.ngo.example.bank.bean.TransactionCommand;
 import com.hashtag.ngo.example.bank.entity.Account;
 import com.hashtag.ngo.example.bank.entity.TransactionType;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,16 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * Endpoints REST de gestion des comptes.
- *
- * <p>Aucune gestion d'erreur globale pour l'instant : les exceptions métier
- * ({@code AccountNotFoundException}, {@code InsufficientFundsException},
- * {@code InvalidAmountException}) remontent telles quelles (500 par
- * défaut) ; un {@code @ControllerAdvice} les traduira en réponses HTTP
- * adaptées dans une prochaine itération.</p>
+ * Endpoints REST de gestion des comptes. Protégés par JWT (voir
+ * {@code SecurityConfig}) ; les exceptions métier sont traduites en
+ * réponses HTTP par {@code GlobalExceptionHandler}.
  */
 @RestController
 @RequestMapping("/accounts")
+@Tag(name = "Comptes", description = "Création, consultation, dépôts et retraits")
+@SecurityRequirement(name = "bearerAuth")
 public class AccountController {
 
     private final AccountService accountService;
@@ -36,6 +38,7 @@ public class AccountController {
     }
 
     @PostMapping
+    @Operation(summary = "Crée un compte courant ou épargne")
     public AccountResponse createAccount(@RequestBody AccountRequest request) {
         // Pattern matching for switch sur AccountType : choisit le sous-type
         // concret à créer (CheckingAccount ou SavingsAccount).
@@ -49,11 +52,13 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Consulte un compte par son identifiant")
     public AccountResponse getAccount(@PathVariable Long id) {
         return accountMapper.toResponse(accountService.getAccount(id));
     }
 
     @GetMapping
+    @Operation(summary = "Liste l'ensemble des comptes")
     public List<AccountResponse> listAccounts() {
         return accountService.listAccounts().stream()
                 .map(accountMapper::toResponse)
@@ -61,6 +66,7 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/deposit")
+    @Operation(summary = "Dépose un montant sur le compte")
     public AccountResponse deposit(@PathVariable Long id, @RequestBody TransactionRequest request) {
         // Le type est imposé par l'URL : celui éventuellement présent dans
         // le corps de la requête (le cas échéant) est ignoré.
@@ -69,6 +75,7 @@ public class AccountController {
     }
 
     @PostMapping("/{id}/withdraw")
+    @Operation(summary = "Retire un montant du compte")
     public AccountResponse withdraw(@PathVariable Long id, @RequestBody TransactionRequest request) {
         TransactionCommand command = new TransactionCommand(id, TransactionType.RETRAIT, request.amount());
         return accountMapper.toResponse(accountService.applyTransaction(command));

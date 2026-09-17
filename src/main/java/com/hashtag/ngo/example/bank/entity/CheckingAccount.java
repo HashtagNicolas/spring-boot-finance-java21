@@ -20,7 +20,7 @@ import java.math.BigDecimal;
 @DiscriminatorValue("COURANT")
 public final class CheckingAccount extends Account {
 
-    @Column(name = "overdraft_limit", nullable = false, precision = 19, scale = 2)
+    @Column(name = "overdraft_limit", precision = 19, scale = 2)
     private BigDecimal overdraftLimit;
 
     protected CheckingAccount() {

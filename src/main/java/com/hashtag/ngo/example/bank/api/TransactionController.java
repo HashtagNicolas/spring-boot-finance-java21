@@ -4,6 +4,10 @@ import com.hashtag.ngo.example.bank.bean.TransactionCommand;
 import com.hashtag.ngo.example.bank.bean.TransactionService;
 import com.hashtag.ngo.example.bank.entity.Transaction;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,9 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * Endpoints REST de gestion des transactions.
+ * Endpoints REST de gestion des transactions. Protégés par JWT (voir
+ * {@code SecurityConfig}).
  */
 @RestController
+@Tag(name = "Transactions", description = "Enregistrement et historique des transactions")
+@SecurityRequirement(name = "bearerAuth")
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -27,6 +34,7 @@ public class TransactionController {
     }
 
     @PostMapping("/accounts/{id}/transactions")
+    @Operation(summary = "Enregistre une transaction (dépôt ou retrait) sur un compte")
     public TransactionResponse createTransaction(@PathVariable Long id, @RequestBody TransactionRequest request) {
         // Le compte pris en compte est celui de l'URL, quel que soit
         // l'accountId éventuellement porté par le corps de la requête.
@@ -36,6 +44,7 @@ public class TransactionController {
     }
 
     @GetMapping("/accounts/{id}/transactions")
+    @Operation(summary = "Historique des transactions d'un compte, du plus ancien au plus récent")
     public List<TransactionResponse> getHistory(@PathVariable Long id) {
         return transactionService.getHistory(id).stream()
                 .map(transactionMapper::toResponse)
@@ -49,6 +58,7 @@ public class TransactionController {
      * chaque élément, puisqu'aucune URL ne désigne un compte particulier.
      */
     @PostMapping("/transactions/batch")
+    @Operation(summary = "Traite un lot de transactions en concurrence (threads virtuels)")
     public List<TransactionResponse> processBatch(@RequestBody List<TransactionRequest> requests) {
         List<TransactionCommand> commands = requests.stream()
                 .map(request -> transactionMapper.toCommand(request.accountId(), request))

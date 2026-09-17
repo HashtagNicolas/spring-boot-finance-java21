@@ -1,0 +1,36 @@
+# Port HTTP d'écoute du serveur embarqué
+server:
+  port: 8080
+
+spring:
+  # Nom de l'application (apparaît dans les logs et les métriques)
+  application:
+    name: bank
+
+  datasource:
+    # Base de données H2 embarquée en mémoire (uniquement pour ce squelette
+    # de développement ; une base persistante sera introduite plus tard)
+    url: jdbc:h2:mem:bank;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      # Génère le schéma à partir des entités JPA à chaque démarrage :
+      # pratique pour ce squelette, à remplacer par des migrations
+      # (Flyway/Liquibase) plus tard
+      ddl-auto: create-drop
+    show-sql: true
+
+  h2:
+    console:
+      # Console web H2, utile en développement pour inspecter les données
+      enabled: true
+
+# Secret utilisé pour signer et vérifier les jetons JWT (voir JwtServiceImpl).
+# ATTENTION : valeur de démonstration en clair, uniquement pour ce squelette
+# de développement -> À CHANGER EN PRODUCTION (variable d'environnement,
+# gestionnaire de secrets externe...), et ne jamais committer un vrai secret.
+jwt:
+  secret: "ceci-est-un-secret-de-demonstration-a-changer-absolument-en-production"

@@ -11,6 +11,8 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.ConcreteProxy;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -26,7 +28,18 @@ import java.time.LocalDateTime;
  * avec une colonne discriminante {@code account_type} qui indique le sous-type
  * réel de chaque ligne. C'est la stratégie la plus performante en lecture
  * (aucune jointure), au prix de colonnes nullable spécifiques à chaque sous-type.</p>
+ *
+ * <p>Note sur les proxies Hibernate : par défaut, Hibernate génère à
+ * l'exécution une sous-classe proxy de chaque entité pour permettre un
+ * chargement différé (LAZY). Une classe {@code sealed} ne pouvant être
+ * étendue que par sa clause {@code permits}, la génération de
+ * {@code Account$HibernateProxy} échouerait. L'annotation
+ * {@code @ConcreteProxy} (Hibernate 7) résout ceci : Hibernate génère alors
+ * un proxy par sous-classe concrète ({@code CheckingAccount},
+ * {@code SavingsAccount}) au lieu d'un proxy de la classe abstraite
+ * scellée.</p>
  */
+@ConcreteProxy
 @Entity
 @Table(name = "accounts")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)

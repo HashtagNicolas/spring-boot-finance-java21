@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 @DiscriminatorValue("EPARGNE")
 public final class SavingsAccount extends Account {
 
-    @Column(name = "interest_rate", nullable = false, precision = 6, scale = 4)
+    @Column(name = "interest_rate", precision = 6, scale = 4)
     private BigDecimal interestRate;
 
     protected SavingsAccount() {
