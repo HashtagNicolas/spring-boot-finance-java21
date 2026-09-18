@@ -1,5 +1,8 @@
-package com.hashtag.ngo.example.bank.bean;
+package com.hashtag.ngo.example.bank.bean.impl;
 
+import com.hashtag.ngo.example.bank.bean.AccountService;
+import com.hashtag.ngo.example.bank.bean.TransactionCommand;
+import com.hashtag.ngo.example.bank.bean.TransactionService;
 import com.hashtag.ngo.example.bank.entity.Account;
 import com.hashtag.ngo.example.bank.entity.Transaction;
 import com.hashtag.ngo.example.bank.entity.TransactionRepository;

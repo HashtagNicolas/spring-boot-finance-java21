@@ -1,4 +1,6 @@
-package com.hashtag.ngo.example.bank.bean;
+package com.hashtag.ngo.example.bank.bean.impl;
+
+import com.hashtag.ngo.example.bank.bean.JwtService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
